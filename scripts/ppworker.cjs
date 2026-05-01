@@ -5,7 +5,7 @@ const sharp = require('sharp')
 const ppconfig = require('./ppconfig.json')
 
 // update package.json build productName
-const updatePackage = async (appName, showName, version, id) => {
+const updatePackage = async (appName, showName, author, version, id) => {
     const packageJson = await fs.readJson(
         path.join(__dirname, '../', 'package.json')
     )
@@ -16,6 +16,8 @@ const updatePackage = async (appName, showName, version, id) => {
     packageJson.build.appId = id
     // update version
     packageJson.version = version
+    // update author
+    packageJson.author.name = author
     await fs.writeJson(path.join(__dirname, '../', 'package.json'), packageJson)
 }
 
@@ -27,6 +29,37 @@ const updateConfig = async (windows, desktop) => {
         configJson
     )
     console.log('config.json updated', configJson)
+}
+
+// update index.html
+const updateIndexHtml = (
+    startMethod,
+    startPwd,
+    pwdTitle,
+    pwdBtn,
+    pwdPlace,
+    pwdTip,
+    pwdError,
+    pwdStyle,
+    pwdTheme,
+    winConfig
+) => {
+    console.log('updateIndexHtml......')
+    const indexHtmlPath = path.join(__dirname, '../src/index.html')
+    const indexHtml = fs.readFileSync(indexHtmlPath, 'utf-8')
+    const newIndexHtml = indexHtml
+        .replaceAll('startMethod', startMethod)
+        .replaceAll('startPwd', startPwd)
+        .replaceAll('pwdTitle', pwdTitle)
+        .replaceAll('pwdBtn', pwdBtn)
+        .replaceAll('pwdPlace', pwdPlace)
+        .replaceAll('pwdTip', pwdTip)
+        .replaceAll('pwdError', pwdError)
+        .replaceAll('pwdStyle', pwdStyle)
+        .replaceAll('pwdTheme', pwdTheme)
+        .replaceAll('https://pakeplus.com/', winConfig.url)
+    fs.writeFileSync(indexHtmlPath, newIndexHtml)
+    console.log('updateIndexHtml success')
 }
 
 // update renderer.js DEFAULT_HOME_URL
@@ -167,15 +200,49 @@ const setGithubEnv = (name, showName, version, pubBody) => {
 // Main execution
 const main = async () => {
     console.log('🚀 worker start')
-    const { name, showName, version, id, url, pubBody } = ppconfig.desktop
+    const {
+        name,
+        showName,
+        version,
+        id,
+        webUrl,
+        pubBody,
+        isHtml,
+        single,
+        state,
+        author,
+        startMethod,
+        startPwd,
+        pwdTitle,
+        pwdBtn,
+        pwdPlace,
+        pwdTip,
+        pwdError,
+        pwdStyle,
+        pwdTheme,
+    } = ppconfig.desktop
     console.log('name:', name)
     console.log('version:', version)
     console.log('id:', id)
-    console.log('url:', url)
+    console.log('url:', webUrl)
+    // update index.html
+    updateIndexHtml(
+        startMethod,
+        startPwd,
+        pwdTitle,
+        pwdBtn,
+        pwdPlace,
+        pwdTip,
+        pwdError,
+        pwdStyle,
+        pwdTheme,
+        winConfig.url
+    )
+    const winConfig = ppconfig.more.windows
     // console.log('password:', password)
-    await updatePackage(name, showName, version, id)
+    await updatePackage(name, showName, author, version, id)
     // update config.json
-    await updateConfig(ppconfig.more.windows, ppconfig.desktop)
+    await updateConfig(winConfig, ppconfig.desktop)
     // edit mac icon
     const iconPath = path.join(__dirname, '../', 'app-icon.png')
     const tempPath = path.join(__dirname, '../', 'processed-image.png')

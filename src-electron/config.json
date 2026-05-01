@@ -60,5 +60,6 @@
     "tauriApi": false,
     "buildMethod": "local",
     "debug": false,
-    "pageTitle": true
+    "pageTitle": true,
+    "startMethod": "password"
 }
